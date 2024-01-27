@@ -174,17 +174,34 @@ with st.container():
         var ballRadius2 = ballRadius*{st.session_state.spiral_velocity_speedup}; // Dynamic ball radius
         var velocity_speedup =  {st.session_state.spiral_velocity_speedup}; // Dynamic speedup
         var spiral_arm_distance_speedup = {st.session_state.spiral_arm_distance_speedup}; // Dynamic speedup
-        var speed1 = 0.05, speed2 = speed1 * velocity_speedup; // Second ball is twice as fast
+        var speed1 = 05, speed2 = speed1 * velocity_speedup; // Second ball is twice as fast
+        // spiral 1 parameters
+        var spiral_arm_distance = 10.5; // Spiral arm distance
+        var sampling_rate = 1; // Sampling rate
+        var radius_as_function_of_phi=spiral_arm_distance/(2*Math.PI) 
+        var phi_step_per_sampling=4*Math.PI*speed1/(spiral_arm_distance*sampling_rate)
+        // spiral 2 parameters
+        var spiral_arm_distance2 = spiral_arm_distance * spiral_arm_distance_speedup; // Spiral arm distance
+        var sampling_rate2 = 1; // Sampling rate
+        var radius_as_function_of_phi2=spiral_arm_distance2/(2*Math.PI)
+        var phi_step_per_sampling2=4*Math.PI*speed2/(spiral_arm_distance2*sampling_rate2)        
+        var spiral_time=0;
+        
         var a1 = 0, b1 = 1.5; // Constants for the first ball's spiral
-        var a2 = 0, b2 = b1 * spiral_arm_distance_speedup; // Constants for the second ball's spiral        
+        var a2 = 0, b2 = b1 * spiral_arm_distance_speedup; // Constants for the second ball's spiral  
+        var phi_offset=0;
+              
 
         function drawBall() {{
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // First ball
-            var radius1 = a1 + b1 * angle1; // Calculate radius based on angle for Archimedean spiral
-            var x1 = centerX + radius1 * Math.cos(angle1);
-            var y1 = centerY + radius1 * Math.sin(angle1);
+            var phi=Math.sqrt(phi_step_per_sampling*spiral_time)
+            var r = radius_as_function_of_phi * phi * (1 - Math.exp(-spiral_time));
+            phi=self.phi_offset+phi;
+            spiral_time=spiral_time+1
+            x1= centerX + r*Math.cos(phi);
+            y1= centerY +r*Math.sin(phi);
             ctx.beginPath();
             ctx.arc(x1, y1, ballRadius, 0, Math.PI * 2);
             var gradient = ctx.createRadialGradient(x1, y1, 0, x1, y1, ballRadius);
@@ -195,9 +212,12 @@ with st.container():
             ctx.closePath();
 
             // Second ball
-            var radius2 = a2 + b2 * angle2; // Calculate radius based on angle for Archimedean spiral
-            var x2 = centerX + radius2 * velocity_speedup  * Math.cos(angle2);
-            var y2 = centerY + radius2 * velocity_speedup * Math.sin(angle2);
+            var phi2=Math.sqrt(phi_step_per_sampling2*spiral_time)
+            var r2 = radius_as_function_of_phi2 * phi2 * (1 - Math.exp(-spiral_time));
+            phi2=self.phi_offset+phi2;
+            x2= centerX + r2*Math.cos(phi2);
+            y2= centerY +r2*Math.sin(phi2);
+            
             ctx.beginPath();
             ctx.arc(x2, y2, ballRadius2, 0, Math.PI * 2);
             gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, ballRadius2);
@@ -211,10 +231,8 @@ with st.container():
             angle2 += speed2;
             if (x1 < -ballRadius && x2 < -spiral_arm_distance_speedup * ballRadius) {{
                 // Reset positions
-                angle1 = 0;
-                angle2 = 0;
-                radius1 = 0;
-                radius2 = 0;
+       
+                spiral_time=0;
                 ball1Positions = [];
                 ball2Positions = [];
             }}            
