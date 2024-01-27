@@ -148,7 +148,7 @@ with st.container():
                 
         # JavaScript/HTML code with dynamic ballRadius
 
-# HTML code as a multiline string
+        # HTML code as a multiline string
         html_code = f"""
         <!DOCTYPE html>
         <html>
@@ -186,14 +186,44 @@ with st.container():
         var radius_as_function_of_phi2=spiral_arm_distance2/(2*Math.PI)
         var phi_step_per_sampling2=4*Math.PI*speed2/(spiral_arm_distance2*sampling_rate2)        
         var spiral_time=0;
-        
+
         var a1 = 0, b1 = 1.5; // Constants for the first ball's spiral
         var a2 = 0, b2 = b1 * spiral_arm_distance_speedup; // Constants for the second ball's spiral  
         var phi_offset=0;
-              
+
+        var ball1Positions = []; // Array to store the positions of the first ball
+        var ball2Positions = []; // Array to store the positions of the second ball
 
         function drawBall() {{
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw fading traces for the last 3 positions of the first ball
+            for (var i = 0; i < ball1Positions.length; i++) {{
+                var position = ball1Positions[i];
+                var alpha = 1 - (i / ball1Positions.length); // Calculate alpha value for fading effect
+                ctx.beginPath();
+                ctx.arc(position.x, position.y, ballRadius, 0, Math.PI * 2);
+                var gradient = ctx.createRadialGradient(position.x, position.y, 0, position.x, position.y, ballRadius);
+                gradient.addColorStop(0, 'rgba(255, 0, 0, ' + alpha + ')');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, ' + alpha + ')');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.closePath();
+            }}
+
+            // Draw fading traces for the last 3 positions of the second ball
+            for (var i = 0; i < ball2Positions.length; i++) {{
+                var position = ball2Positions[i];
+                var alpha = 1 - (*i / ball2Positions.length); // Calculate alpha value for fading effect
+                ctx.beginPath();
+                ctx.arc(position.x, position.y, ballRadius2, 0, Math.PI * 2);
+                var gradient = ctx.createRadialGradient(position.x, position.y, 0, position.x, position.y, ballRadius2);
+                gradient.addColorStop(0, 'rgba(0, 0, 255, ' + alpha + ')');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, ' + alpha + ')');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.closePath();
+            }}
 
             // First ball
             var phi=Math.sqrt(phi_step_per_sampling*spiral_time)
@@ -227,11 +257,22 @@ with st.container():
             ctx.fill();
             ctx.closePath();
 
+            // Store the positions of the first ball
+            ball1Positions.push({{ x: x1, y: y1 }});
+            if (ball1Positions.length > 3) {{
+                ball1Positions.shift(); // Remove the oldest position if there are more than 3
+            }}
+
+            // Store the positions of the second ball
+            ball2Positions.push({{ x: x2, y: y2 }});
+            if (ball2Positions.length > 3) {{
+                ball2Positions.shift(); // Remove the oldest position if there are more than 3
+            }}
+
             angle1 += speed1;
             angle2 += speed2;
             if (x1 < -ballRadius && x2 < -spiral_arm_distance_speedup * ballRadius) {{
                 // Reset positions
-       
                 spiral_time=0;
                 ball1Positions = [];
                 ball2Positions = [];
