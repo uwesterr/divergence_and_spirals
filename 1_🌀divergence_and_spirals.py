@@ -147,18 +147,18 @@ with st.container():
     with col_left:
                 
         # JavaScript/HTML code with dynamic ballRadius
-  
+
 # HTML code as a multiline string
-        html_code = """
+        html_code = f"""
         <!DOCTYPE html>
         <html>
         <head>
         <style>
-        canvas {
+        canvas {{
             background-color: black;
             border: 1px solid black;
             border-radius: 50%; /* Make the canvas round */
-        }
+        }}
         </style>
         </head>
         <body style="background-color: #0F1111; display: flex; justify-content: center; align-items: center;">
@@ -169,14 +169,16 @@ with st.container():
         var angle1 = 0, angle2 = 0;
         var centerX = canvas.width / 2;
         var centerY = canvas.height / 2;
-        var a1 = 0, b1 = 0.5; // Constants for the first ball's spiral
-        var a2 = 0, b2 = 0.5; // Constants for the second ball's spiral
-        var ballRadius = 15; // Dynamic ball radius
-        var velocity_speedup = 2; // Dynamic speedup
-        var spiral_arm_distance_speedup = 1; // Dynamic speedup
-        var speed1 = 0.05, speed2 = speed1 * velocity_speedup; // Second ball is twice as fast
 
-        function drawBall() {
+        var ballRadius = 15; // Dynamic ball radius
+        var ballRadius2 = ballRadius*{st.session_state.spiral_velocity_speedup}; // Dynamic ball radius
+        var velocity_speedup =  {st.session_state.spiral_velocity_speedup}; // Dynamic speedup
+        var spiral_arm_distance_speedup = {st.session_state.spiral_arm_distance_speedup}; // Dynamic speedup
+        var speed1 = 0.05, speed2 = speed1 * velocity_speedup; // Second ball is twice as fast
+        var a1 = 0, b1 = 1.5; // Constants for the first ball's spiral
+        var a2 = 0, b2 = b1 * spiral_arm_distance_speedup; // Constants for the second ball's spiral        
+
+        function drawBall() {{
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // First ball
@@ -194,11 +196,11 @@ with st.container():
 
             // Second ball
             var radius2 = a2 + b2 * angle2; // Calculate radius based on angle for Archimedean spiral
-            var x2 = centerX + radius2 * Math.cos(angle2);
-            var y2 = centerY + radius2 * Math.sin(angle2);
+            var x2 = centerX + radius2 * velocity_speedup  * Math.cos(angle2);
+            var y2 = centerY + radius2 * velocity_speedup * Math.sin(angle2);
             ctx.beginPath();
-            ctx.arc(x2, y2, ballRadius, 0, Math.PI * 2);
-            gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, ballRadius);
+            ctx.arc(x2, y2, ballRadius2, 0, Math.PI * 2);
+            gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, ballRadius2);
             gradient.addColorStop(0, 'blue');
             gradient.addColorStop(1 , 'white');
             ctx.fillStyle = gradient;
@@ -207,9 +209,18 @@ with st.container():
 
             angle1 += speed1;
             angle2 += speed2;
+            if (x1 < -ballRadius && x2 < -spiral_arm_distance_speedup * ballRadius) {{
+                // Reset positions
+                angle1 = 0;
+                angle2 = 0;
+                radius1 = 0;
+                radius2 = 0;
+                ball1Positions = [];
+                ball2Positions = [];
+            }}            
 
             requestAnimationFrame(drawBall);
-        }
+        }}
 
         drawBall();
         </script>
