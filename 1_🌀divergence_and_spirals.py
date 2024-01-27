@@ -121,7 +121,7 @@ with st.container():
 
         # Insert vertical line
 
-
+st.session_state['alpha'] = 0.05
 if 'acquisition_margin' not in st.session_state:
     st.session_state['acquisition_margin'] = 5
     st.session_state['session_state_acquisition_margin_linear'] = 0
@@ -173,8 +173,32 @@ with st.container():
         var spiral_arm_distance_speedup = {st.session_state.spiral_arm_distance_speedup}; // Dynamic speedup
         var speed1 = 0.05, speed2 = speed1 * velocity_speedup ; // Second ball is twice as fast
 
+        // Arrays to store the last three positions of each ball
+        var ball1Positions = [];
+        var ball2Positions = [];
+
         function drawBall() {{
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw fading traces for ball 1
+            for (var i = 0; i < ball1Positions.length; i++) {{
+                var alpha = 1 - (i / ball1Positions.length); // Calculate alpha value for fading effect
+                ctx.beginPath();
+                ctx.arc(ball1Positions[i].x, ball1Positions[i].y, ballRadius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 0, 0, alpha)`; // Red color with fading effect
+                ctx.fill();
+                ctx.closePath();
+            }}
+
+            // Draw fading traces for ball 2
+            for (var i = 0; i < ball2Positions.length; i++) {{
+                var alpha = 1 - (i / ball2Positions.length); // Calculate alpha value for fading effect
+                ctx.beginPath();
+                ctx.arc(ball2Positions[i].x, ball2Positions[i].y, spiral_arm_distance_speedup * ballRadius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 0, 255, alpha)`; // Blue color with fading effect
+                ctx.fill();
+                ctx.closePath();
+            }}
 
             // First ball
             var x1 = centerX + radius1 * Math.cos(angle1);
@@ -192,7 +216,7 @@ with st.container():
             var x2 = centerX + radius2 * velocity_speedup * Math.cos(angle2); // Twice the spiral width
             var y2 = centerY + radius2 * velocity_speedup * Math.sin(angle2);
             ctx.beginPath();
-            ctx.arc(x2, y2, spiral_arm_distance_speedup*ballRadius, 0, Math.PI * 2);
+            ctx.arc(x2, y2, spiral_arm_distance_speedup * ballRadius, 0, Math.PI * 2);
             gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, ballRadius * spiral_arm_distance_speedup)
             gradient.addColorStop(0, 'blue')
             gradient.addColorStop(1 , 'white')
@@ -200,18 +224,32 @@ with st.container():
             ctx.fill();
             ctx.closePath();
 
+            // Add current positions to the arrays
+            ball1Positions.push({{ x: x1, y: y1 }});
+            ball2Positions.push({{ x: x2, y: y2 }});
+
+            // Remove oldest positions if arrays exceed length 3
+            if (ball1Positions.length > 3) {{
+                ball1Positions.shift();
+            }}
+            if (ball2Positions.length > 3) {{
+                ball2Positions.shift();
+            }}
+
             angle1 += speed1;
             radius1 += 0.5;
             angle2 += speed2;
             radius2 += 0.5 * spiral_arm_distance_speedup; // Same rate of increase, but effectively doubled due to speed
 
             // Check if both balls are out of the canvas range
-            if (x1 < -ballRadius && x2 < -spiral_arm_distance_speedup*ballRadius) {{
+            if (x1 < -ballRadius && x2 < -spiral_arm_distance_speedup * ballRadius) {{
                 // Reset positions
                 angle1 = 0;
                 angle2 = 0;
                 radius1 = 0;
                 radius2 = 0;
+                ball1Positions = [];
+                ball2Positions = [];
             }}
 
             requestAnimationFrame(drawBall);
