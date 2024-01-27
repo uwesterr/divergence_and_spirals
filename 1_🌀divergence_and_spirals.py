@@ -128,6 +128,7 @@ if 'acquisition_margin' not in st.session_state:
     st.session_state['spiral_arm_distance_speedup'] = 0 
     st.session_state['spiral_velocity_speedup'] = 10 
     st.session_state['total_spiral_speedup'] = 0
+    st.session_state['show_trace'] = 1
     #calc()
 start_fov = st.sidebar.slider( "UC to scan [µrad]:", key="uncertainty_cone", on_change=calc, value= 1000, min_value= 100, max_value= 3000, step=10)
 
@@ -145,6 +146,7 @@ with st.container():
         st.metric("Spiral Velocity Speedup", ("%.1f" % st.session_state.spiral_velocity_speedup))  
 
     with col_left:
+        st.session_state.show_trace = st.radio("Show trace", ('1', '0'), index=1)
                 
         # JavaScript/HTML code with dynamic ballRadius
 
@@ -194,13 +196,15 @@ with st.container():
         // this is the case since the the increased radius is compensated by the increased speed for the second ball
         var phi_offset1=90;
         var phi_offset2=22;
+        var show_trace = {st.session_state.show_trace}; // Show trace of the ball
 
         var ball1Positions = []; // Array to store the positions of the first ball
         var ball2Positions = []; // Array to store the positions of the second ball
 
         function drawBall() {{
+            if (show_trace == '0') {{
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+            }}
             // Draw fading traces for the last 3 positions of the first ball
             for (var i = 0; i < ball1Positions.length; i++) {{
                 var position = ball1Positions[i];
@@ -273,13 +277,46 @@ with st.container():
                 ball2Positions.shift(); // Remove the oldest position if there are more than 3
             }}
 
+        // Draw the line for the first ball
+        if (ball1Positions.length > 1) {{
+            ctx.beginPath();
+            ctx.moveTo(ball1Positions[0].x, ball1Positions[0].y);
+            for (var i = 1; i < ball1Positions.length; i++) {{
+                ctx.lineTo(ball1Positions[i].x, ball1Positions[i].y);
+            }}
+            ctx.strokeStyle = 'red';
+            ctx.stroke();
+        }}
 
-            if (x1 < -ballRadius && x2 < -spiral_arm_distance_speedup * ballRadius) {{
-                // Reset positions
-                spiral_time=0;
-                ball1Positions = [];
-                ball2Positions = [];
-            }}            
+        // Draw the line for the second ball
+        if (ball2Positions.length > 1) {{
+            ctx.beginPath();
+            ctx.moveTo(ball2Positions[0].x, ball2Positions[0].y);
+            for (var i = 1; i < ball2Positions.length; i++) {{
+                ctx.lineTo(ball2Positions[i].x, ball2Positions[i].y);
+            }}
+            ctx.strokeStyle = 'blue';
+            ctx.stroke();
+        }}
+        
+        // Stop the animation if the first ball reaches the edge of the canvas
+        if (x1 > canvas.width - ballRadius || x1 < ballRadius || y1 > canvas.height - ballRadius || y1 < ballRadius) {{
+            // Reset positions
+            spiral_time=0;
+            ball1Positions = [];
+            ball2Positions = [];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }}
+
+
+
+        if (x1 < r && x2 < r2) {{
+            // Reset positions
+            spiral_time=0;
+            ball1Positions = [];
+            ball2Positions = [];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }}            
 
             requestAnimationFrame(drawBall);
         }}
@@ -292,6 +329,8 @@ with st.container():
 
         # Embed in Streamlit
         st.markdown(f'<h1 style="color:green">{"Spiral Animation"}</h1>', unsafe_allow_html=True)
+        # add radio button to select if trace shall be shown or not
+        
         components.html(html_code, height=420)
         
         # add horizontal line with html
