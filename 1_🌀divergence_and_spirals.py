@@ -166,7 +166,6 @@ with st.container():
         <script>
         var canvas = document.getElementById('myCanvas');
         var ctx = canvas.getContext('2d');
-        var angle1 = 0, angle2 = 0;
         var centerX = canvas.width / 2;
         var centerY = canvas.height / 2;
 
@@ -175,13 +174,15 @@ with st.container():
         var velocity_speedup =  {st.session_state.spiral_velocity_speedup}; // Dynamic speedup
         var spiral_arm_distance_speedup = {st.session_state.spiral_arm_distance_speedup}; // Dynamic speedup
         var speed1 = 05, speed2 = speed1 * velocity_speedup; // Second ball is twice as fast
-        // spiral 1 parameters
+        
+        // ******************* spiral 1 parameters     *******************
         var spiral_arm_distance = 10.5; // Spiral arm distance
         var sampling_rate = 1; // Sampling rate
         var radius_as_function_of_phi=spiral_arm_distance/(2*Math.PI) 
         var phi_step_per_sampling=4*Math.PI*speed1/(spiral_arm_distance*sampling_rate)
-        // spiral 2 parameters
-        var spiral_arm_distance2 = spiral_arm_distance * spiral_arm_distance_speedup; // Spiral arm distance
+        
+        // ******************* spiral 2 parameters  *******************
+        var spiral_arm_distance2 = spiral_arm_distance*.99 * spiral_arm_distance_speedup; // Spiral arm distance
         var sampling_rate2 = 1; // Sampling rate
         var radius_as_function_of_phi2=spiral_arm_distance2/(2*Math.PI)
         var phi_step_per_sampling2=4*Math.PI*speed2/(spiral_arm_distance2*sampling_rate2)        
@@ -189,7 +190,10 @@ with st.container():
 
         var a1 = 0, b1 = 1.5; // Constants for the first ball's spiral
         var a2 = 0, b2 = b1 * spiral_arm_distance_speedup; // Constants for the second ball's spiral  
-        var phi_offset=0;
+        // add different offset so it is the dots are not always at same angular position
+        // this is the case since the the increased radius is compensated by the increased speed for the second ball
+        var phi_offset1=90;
+        var phi_offset2=22;
 
         var ball1Positions = []; // Array to store the positions of the first ball
         var ball2Positions = []; // Array to store the positions of the second ball
@@ -200,7 +204,7 @@ with st.container():
             // Draw fading traces for the last 3 positions of the first ball
             for (var i = 0; i < ball1Positions.length; i++) {{
                 var position = ball1Positions[i];
-                var alpha = 1 - (i / ball1Positions.length); // Calculate alpha value for fading effect
+                var alpha = .15 - (i / ball1Positions.length); // Calculate alpha value for fading effect
                 ctx.beginPath();
                 ctx.arc(position.x, position.y, ballRadius, 0, Math.PI * 2);
                 var gradient = ctx.createRadialGradient(position.x, position.y, 0, position.x, position.y, ballRadius);
@@ -214,7 +218,7 @@ with st.container():
             // Draw fading traces for the last 3 positions of the second ball
             for (var i = 0; i < ball2Positions.length; i++) {{
                 var position = ball2Positions[i];
-                var alpha = 1 - (*i / ball2Positions.length); // Calculate alpha value for fading effect
+                var alpha = .15 - (i / .1*ball2Positions.length); // Calculate alpha value for fading effect
                 ctx.beginPath();
                 ctx.arc(position.x, position.y, ballRadius2, 0, Math.PI * 2);
                 var gradient = ctx.createRadialGradient(position.x, position.y, 0, position.x, position.y, ballRadius2);
@@ -227,8 +231,8 @@ with st.container():
 
             // First ball
             var phi=Math.sqrt(phi_step_per_sampling*spiral_time)
-            var r = radius_as_function_of_phi * phi * (1 - Math.exp(-spiral_time));
-            phi=self.phi_offset+phi;
+            var r = radius_as_function_of_phi * phi;// * (1 - Math.exp(-spiral_time));
+            phi=phi_offset1+phi;
             spiral_time=spiral_time+1
             x1= centerX + r*Math.cos(phi);
             y1= centerY +r*Math.sin(phi);
@@ -244,7 +248,7 @@ with st.container():
             // Second ball
             var phi2=Math.sqrt(phi_step_per_sampling2*spiral_time)
             var r2 = radius_as_function_of_phi2 * phi2 * (1 - Math.exp(-spiral_time));
-            phi2=self.phi_offset+phi2;
+            phi2=phi_offset2+phi2;
             x2= centerX + r2*Math.cos(phi2);
             y2= centerY +r2*Math.sin(phi2);
             
@@ -269,8 +273,7 @@ with st.container():
                 ball2Positions.shift(); // Remove the oldest position if there are more than 3
             }}
 
-            angle1 += speed1;
-            angle2 += speed2;
+
             if (x1 < -ballRadius && x2 < -spiral_arm_distance_speedup * ballRadius) {{
                 // Reset positions
                 spiral_time=0;
