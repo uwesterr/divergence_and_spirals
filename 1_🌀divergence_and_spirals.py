@@ -146,7 +146,7 @@ with st.container():
         st.metric("Spiral Velocity Speedup", ("%.1f" % st.session_state.spiral_velocity_speedup))  
 
     with col_left:
-        st.session_state.show_trace = st.radio("Show trace", ('1', '0'), index=1)
+        st.session_state.show_trace = st.toggle('Show trace', False, key='my_checkbox')
                 
         # JavaScript/HTML code with dynamic ballRadius
 
@@ -166,6 +166,9 @@ with st.container():
         <body style="background-color: #0F1111; display: flex; justify-content: center; align-items: center;">
         <canvas id="myCanvas" width="400" height="400"></canvas>
         <script>
+        var a=0;
+ 
+            
         var canvas = document.getElementById('myCanvas');
         var ctx = canvas.getContext('2d');
         var centerX = canvas.width / 2;
@@ -197,16 +200,17 @@ with st.container():
         // this is the case since the the increased radius is compensated by the increased speed for the second ball
         var phi_offset1=90;
         var phi_offset2=22;
-        //var show_trace = {st.session_state.show_trace}; // Show trace of the ball
 
         var ball1Positions = []; // Array to store the positions of the first ball
         var ball2Positions = []; // Array to store the positions of the second ball
 
         function drawBall() {{
             // add if statement based on st.session_state.show_trace to clear canvas or not
-            if ({st.session_state.show_trace} == '0') {{
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }}
+
+            if ({'false' if st.session_state.show_trace else 'true'}) {{
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                }}            
             // Draw fading traces for the last 3 positions of the first ball
             for (var i = 0; i < ball1Positions.length; i++) {{
                 var position = ball1Positions[i];
@@ -278,7 +282,8 @@ with st.container():
             if (ball2Positions.length > 3) {{
                 ball2Positions.shift(); // Remove the oldest position if there are more than 3
             }}
-        if ({st.session_state.show_trace} == '1') {{
+        if ({'false' if st.session_state.show_trace else 'true'}) {{
+            
 
             // Draw the line for the first ball
             if (ball1Positions.length > 1) {{
