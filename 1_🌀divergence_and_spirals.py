@@ -161,14 +161,30 @@ with st.container():
             border: 1px solid black;
             border-radius: 50%; /* Make the canvas round */
         }}
+        .star {{
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background-color: white;
+    }} 
         </style>
         </head>
-        <body style="background-color: #0F1111; display: flex; justify-content: center; align-items: center;">
+        <body style="background-color: black; display: flex; justify-content: center; align-items: center;">
         <canvas id="myCanvas" width="400" height="400"></canvas>
         <script>
-        var a=0;
- 
-            
+        var num_stars = 100;
+        function createStar() {{
+            const star = document.createElement('div');
+            star.classList.add('star');
+            star.style.left = Math.random() * window.innerWidth + 'px';
+            star.style.top = Math.random() * window.innerHeight + 'px';
+            document.body.appendChild(star);
+    }}
+
+    for (let i = 0; i < num_stars; i++) {{
+        createStar();
+    }}        
+        
         var canvas = document.getElementById('myCanvas');
         var ctx = canvas.getContext('2d');
         var centerX = canvas.width / 2;
@@ -210,7 +226,7 @@ with st.container():
             if ({'false' if st.session_state.show_trace else 'true'}) {{
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                }}            
+                    }}                            
             // Draw fading traces for the last 3 positions of the first ball
             for (var i = 0; i < ball1Positions.length; i++) {{
                 var position = ball1Positions[i];
@@ -270,6 +286,16 @@ with st.container():
             ctx.fillStyle = gradient;
             ctx.fill();
             ctx.closePath();
+                        
+            /*
+            // add function that counts number of spiral arms and writes it to the canvas
+            var spiral_arms=Math.floor(phi/(2*Math.PI))
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText("radius: " + Math.floor(r), 100, 50);   
+            ctx.fillText("radius fast: " + Math.floor(r2), 100, 90);   
+            */         
+                     
 
             // Store the positions of the first ball
             ball1Positions.push({{ x: x1, y: y1 }});
@@ -315,9 +341,6 @@ with st.container():
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }}
         
-
-
-
         if (x1 < r && x2 < r2) {{
             // Reset positions
             spiral_time=0;
@@ -328,8 +351,8 @@ with st.container():
 
             requestAnimationFrame(drawBall);
         }}
-
         drawBall();
+  
         </script>
         </body>
         </html>
